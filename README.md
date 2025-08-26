@@ -11,6 +11,25 @@ The application integrates control over a Thorlabs KDC101 motorized rotation sta
 
 ---
 
+---
+
+## Experimental Setup
+
+The diagram below illustrates the principle of the Polarization-Resolved Second Harmonic Generation (PR-SHG) setup.
+
+![PR-SHG Setup Diagram](https://github.com/nikodemsokolowski/Polarization-SHG-Controller/raw/main/setup.png)
+
+### Excitation Path
+1.  A **Ti:Sapphire Laser** generates the fundamental beam at a wavelength of ~900 nm.
+2.  A **Polarizer** sets the linear polarization of the light.
+3.  A **Half-waveplate**, mounted on the KDC101 rotation stage, precisely rotates the polarization plane of the laser beam.
+
+### Detection Path
+1.  The **Second Harmonic Generation (SHG) signal** at ~450 nm, is generated from the sample.
+2.  The signal travels back through the same set of the **Half-waveplate** and the **Polarizer**.
+3.  A **Short-pass Filter** cuts the laser light, transmitting only the SHG signal.
+4.  The signal is then analyzed by a **Spectrometer with a CCD camera**, which is controlled by the **LightField** software.
+
 ## Features
 
 -   **Hardware Integration:** Full control of a Thorlabs KDC101 rotation stage via the Kinesis SDK.
