@@ -1,112 +1,139 @@
-# Polarization Scan Controller
 
-A Python desktop application for automating polarization-resolved Second Harmonic Generation (SHG) measurements.
+# Polarization-Resolved SHG Automation
+
+## Overview
+
+This software provides a comprehensive solution for automating Polarization-Resolved Second Harmonic Generation (PR-SHG) measurements. It is specifically designed to determine the crystallographic axes of 2D materials, such as monolayers, which is crucial for calculating the interlayer twist angle in van der Waals heterostructures.
+
+The application integrates control over a Thorlabs KDC101 motorized rotation stage (for a half-waveplate) and Princeton Instruments' LightField spectroscopy software, providing a seamless workflow from data acquisition to analysis.
+
+![Software Screenshot](https://github.com/nikodemsokolowski/Polarization-SHG-Controller/raw/main/Fig1.png)
+
+---
 
 ## Features
 
-*   Controls Thorlabs KDC101 rotation stage via Kinesis SDK (`ctypes`).
-*   Controls Princeton Instruments LightField software via Automation (`pythonnet`).
-*   GUI built with CustomTkinter.
-*   Configurable scan parameters (angle range, step, exposure, accumulations).
-*   Manual stage control (home, move to, move relative).
-*   Manual single spectrum acquisition.
-*   Live spectrum display.
-*   Polarization-dependent intensity analysis plot with optional fitting.
-*   Status bar, progress bar, and logging panel.
-*   Saves raw data (TODO: Implement saving in `scan_logic.py` using `file_io_utils.py`).
-*   Mock hardware mode for testing without connected devices (`python main_app.py --mock`).
+-   **Hardware Integration:** Full control of a Thorlabs KDC101 rotation stage via the Kinesis SDK.
+-   **Software Automation:** Connects to and automates data acquisition using Princeton Instruments' LightField software.
+-   **Automated & Manual Control:**
+    -   Define start angle, end angle, and step size for fully automated measurement sequences.
+    -   Manual stage control (Home, Move To, Move Relative).
+    -   Manual single spectrum acquisition.
+-   **Live Data Visualization:**
+    -   Real-time plotting of acquired spectra.
+    -   Live updates of the intensity-vs-angle analysis plot during scans.
+-   **Data Analysis:**
+    -   Load previously acquired data for re-analysis.
+    -   Calculate the maximum intensity within a user-defined spectral range.
+    -   Fit the polarization-dependent intensity data to a theoretical model to extract the crystal orientation.
+-   **User-Friendly Interface:**
+    -   An intuitive GUI built with CustomTkinter.
+    -   Includes a status bar, progress bar, and a detailed logging panel.
+-   **Testing Mode:** Run the application with simulated hardware for development and testing using the `--mock` flag.
 
-## Prerequisites
+---
 
-1.  **Python 3.x:** Recommended 3.9+
-2.  **Thorlabs Kinesis:** Must be installed in the default location (`C:\Program Files\Thorlabs\Kinesis`). The application relies on finding the necessary DLLs (`Thorlabs.MotionControl.DeviceManager.dll`, `Thorlabs.MotionControl.KCube.DCServo.dll`) within this directory.
-3.  **Princeton Instruments LightField:** Must be installed. The application attempts to find the Automation DLLs (`PrincetonInstruments.LightField.AutomationV2.dll`, `PrincetonInstruments.LightFieldAddInSupportServices.dll`) relative to the path specified by the `LIGHTFIELD_INSTALL_PATH` environment variable, or defaults to `C:\Program Files\Princeton Instruments\LightField` if the variable is not set. Ensure the DLLs are present in the expected subdirectories (`Automation\AutomationV2` and `AddInSupport`).
-4.  **Required Python Packages:** Install using pip:
-    ```bash
-    pip install customtkinter matplotlib numpy scipy pythonnet
-    ```
-    *(Note: `pythonnet` installation might require specific .NET framework versions depending on your system and LightField version.)*
+## Installation (For End-Users)
 
-## Installation / Setup
+The easiest way to use the software is to download the pre-built version.
 
-1.  **Clone the repository or download the source code.**
-2.  **Install Prerequisites:** Ensure Python, Kinesis, LightField, and the required Python packages (see above) are installed correctly.
-3.  **(Optional) Set Environment Variables:**
-    *   If your LightField installation is not in the default path, set the `LIGHTFIELD_INSTALL_PATH` environment variable to your LightField installation directory (e.g., `D:\Programs\LightField`).
-4.  **Verify Hardware Connections:** Connect the KDC101 stage and ensure the spectrometer is connected and configured within LightField.
+1.  **Download the latest release:** Go to the [**Releases Page**](https://github.com/nikodemsokolowski/Polarization-SHG-Controller/releases/latest) and download the `.zip` file.
+2.  **Extract:** Unzip the downloaded file to a folder on your computer.
+3.  **Run:** Double-click the `PolarizationScanController.exe` (or similar) executable file to start the application.
 
-## Running the Application
-
-### From Source
-
-Navigate to the project directory in your terminal and run:
-
-```bash
-python main_app.py
-```
-
-To run with simulated hardware (useful for UI testing or development without devices):
-
-```bash
-python main_app.py --mock
-```
-
-### From Executable (After Building)
-
-1.  **Build the Executable:**
-    *   Ensure `pyinstaller` is installed (`pip install pyinstaller`).
-    *   Navigate to the project directory in your terminal.
-    *   Run PyInstaller using the spec file:
-        ```bash
-        pyinstaller build.spec
-        ```
-    *   This will create a `dist` folder containing the executable (`PolarizationScanController.exe`) and associated files.
-    *   **Note:** The `build.spec` file may need adjustments (e.g., adding hidden imports for `clr` namespaces, explicitly including Kinesis/LightField DLLs if not found automatically) depending on your specific environment and package versions. Debugging PyInstaller builds can involve trial and error. Check the build warnings and output for clues.
-
-2.  **Run the Executable:**
-    *   Navigate to the `dist/PolarizationScanController` folder.
-    *   Double-click `PolarizationScanController.exe`.
+---
 
 ## Usage
 
-1.  **Device Connections:**
-    *   Click "Scan" to detect connected KDC101 devices.
-    *   Select the desired KDC101 serial number from the dropdown.
-    *   Click "Connect" for KDC101. Status will update.
-    *   Click "Connect" for LightField. Status will update. (Ensure LightField software is running).
-2.  **Scan Parameters:**
-    *   Enter the desired Start Angle, End Angle, and Step Size in degrees.
-    *   Enter the Exposure time (seconds) and number of Accumulations for LightField.
-    *   Select a Save Directory using "Browse".
-    *   Enter a Base Filename for saved data.
-3.  **Run Scan:**
-    *   Click "Start Scan". The scan will proceed through the angles, acquiring data at each step.
-    *   Progress is shown in the progress bar and status messages.
-    *   Live spectrum and intensity vs. angle plots will update.
-    *   Click "Stop Scan" to abort the current scan.
-4.  **Manual Control:**
-    *   Use the "Home", "Move To", and "Move Rel" controls for the KDC101 stage (requires connection).
-    *   The current stage position is updated periodically.
-    *   Click "Acquire Single Spectrum" to take one measurement using LightField (requires connection).
-5.  **Plots:**
-    *   **Live Spectrum:** Shows the most recently acquired spectrum. Use the toolbar to zoom/pan.
-    *   **Intensity Analysis:** Shows the integrated intensity (from ROI or full spectrum) vs. the measured polarization angle. A fit (e.g., cos^2) is applied after the scan completes.
-6.  **Status/Log:**
-    *   The bottom status bar shows the latest message.
-    *   The log panel provides a history of operations and errors. Right-click to copy or clear.
+1.  **Prepare LightField:** Ensure the Princeton Instruments LightField software is **closed**. The controller will launch and connect to it automatically.
+
+2.  **Connect to Hardware:**
+    -   In the "Controls" panel at the top left, you will find the connection controls.
+    -   Click **"LightField Connect"**. The application will start LightField in the background.
+    -   Next, scan for and connect to the KDC101 stage.
+    -   **A green light will appear next to each button upon a successful connection.**
+
+3.  **Set Scan Parameters:**
+    -   Define the **Start Angle**, **End Angle**, and **Step Size** for the half-waveplate rotation.
+    -   Specify the **Save Directory** where the data files will be stored.
+    -   Set the **Range (nm)** for the wavelength region of interest used for calculating the maximum intensity.
+
+4.  **Run the Scan:**
+    -   Click **"Start Scan"** to begin the automated measurement.
+    -   You can monitor the progress with the live spectrum and the updating intensity vs. angle plot.
+    -   The scan can be paused, resumed, or aborted at any time.
+
+5.  **Analyze Data:**
+    -   Once the scan is complete, or by loading previous data using the **"Load Data (.csv)"** button in the "Intensity Analysis" tab, you can proceed with fitting.
+    -   Enter initial guesses for the fit parameters (`y₀`, `A`, `θ₀`).
+    -   Click **"Fit Data"** to perform the curve fitting. The results will be displayed.
+
+---
+
+## For Developers: Building from Source
+
+If you want to modify the code or run it directly from source, follow these steps.
+
+### 1. Prerequisites
+-   **Python 3.9+** is recommended.
+-   **Thorlabs Kinesis:** Must be installed for the KDC101 drivers.
+-   **Princeton Instruments LightField:** Must be installed.
+
+### 2. Setup
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/nikodemsokolowski/Polarization-SHG-Controller.git](https://github.com/nikodemsokolowski/Polarization-SHG-Controller.git)
+    cd Polarization-SHG-Controller
+    ```
+
+2.  **Create a virtual environment (recommended):**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+    ```
+
+3.  **Install the required Python packages:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4.  **Configure Hardware SDK Paths:**
+    -   **Thorlabs Kinesis:** The `kdc101_controller.py` script assumes a default installation path of `C:\Program Files\Thorlabs\Kinesis`. If your installation is different, you must update the `KINESIS_PATH` variable in the script.
+    -   **LightField SDK:** The `lightfield_controller.py` script will attempt to find the SDK in a default location. If this fails, you can provide the path in the GUI.
+
+### 3. Building an Executable
+You can package the application into a standalone executable using PyInstaller.
+-   **Install PyInstaller:**
+    ```bash
+    pip install pyinstaller
+    ```
+-   **Build the Executable:**
+    A `build.spec` file is included in the repository. Run PyInstaller with this file:
+    ```bash
+    pyinstaller build.spec
+    ```
+    This command will create `build` and `dist` folders. The final application is in the `dist` folder.
+
+---
 
 ## Code Structure
 
-The application follows a modular structure to keep individual files concise:
+The project is organized into several modules:
 
-*   `main_app.py`: Main application class, orchestrates GUI and controllers.
-*   `gui_*.py`: Files defining different parts of the CustomTkinter GUI.
-*   `kdc101_controller.py`: KDC101 hardware communication (`ctypes`).
-*   `lightfield_controller.py`: LightField hardware communication (`pythonnet`).
-*   `scan_logic.py`: Core scan loop execution (threaded).
-*   `analysis_module.py`: Data processing (intensity calculation, fitting).
-*   `plotting_module.py`: Updates Matplotlib plots.
-*   `file_io_utils.py`: Helper functions for saving data (TODO).
-*   `mock_hardware.py`: Mock controllers for testing.
-*   `build.spec`: PyInstaller configuration.
-*   `README.md`: This file.
+-   `main_app.py`: The main entry point of the application.
+-   `gui_main_window.py`: Defines the main window layout.
+-   `gui_*.py`: Files that define specific parts of the GUI.
+-   `kdc101_controller.py`: Handles communication with the Thorlabs KDC101 stage.
+-   `lightfield_controller.py`: Manages the connection to LightField software.
+-   `scan_logic.py`: Contains the logic for the measurement scan loop.
+-   `plotting_module.py`: Manages all the Matplotlib plots.
+-   `analysis_module.py`: Contains functions for data analysis and curve fitting.
+-   `mock_hardware.py`: Contains mock controller classes for testing.
+-   `build.spec`: The configuration file for PyInstaller.
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
